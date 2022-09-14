@@ -8,10 +8,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.Valid;
 
 @Slf4j
 @Controller
@@ -24,7 +29,8 @@ public class ContactController {
     }
 
     @RequestMapping(value = { "/contact" })
-    public String contact() {
+    public String contact(Model model) {
+        model.addAttribute("contact", new Contact());
         return "contact.html";
     }
 
@@ -41,9 +47,13 @@ public class ContactController {
 //    }
 
     @PostMapping(value = "/saveMsg")
-    public ModelAndView SaveMessage(Contact contact) {
+    public String SaveMessage(@Valid @ModelAttribute("contact") Contact contact, Errors errors) {
+        if (errors.hasErrors()) {
+            log.error("Contact form validation failed due to " + errors.toString());
+            return "contact.html";
+        }
         contactService.saveMessage(contact);
-        return new ModelAndView("redirect:/contact");
+        return "redirect:/contact";
     }
 
 }
